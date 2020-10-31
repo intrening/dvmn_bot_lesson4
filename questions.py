@@ -26,18 +26,21 @@ def get_right_answer(user_id):
 
 
 def parse_questions():
-    with open('1vs1200.txt', 'r', encoding='KOI8-R') as f:
-        file_lines = f.read().split('\n\n')
     question_dict = {}
-    question = answer = ''
-    for line in file_lines:
-        if 'Вопрос ' in line:
-            question = ''.join(line.replace('\n', ' ').split(': ')[1:])
-        if 'Ответ:' in line:
-            answer = ''.join(line.replace('\n', ' ').split(': ')[1:])
-        if question and answer:
-            question_dict[question] = answer
+    question_dir = os.getenv('QUESTIONS_DIR')
+    for file in os.listdir(question_dir):
+        if file.endswith(".txt"):
+            with open(os.path.join(question_dir, file), 'r', encoding='KOI8-R') as f:
+                file_lines = f.read().split('\n\n')
             question = answer = ''
+            for line in file_lines:
+                if 'Вопрос ' in line:
+                    question = ''.join(line.replace('\n', ' ').split(': ')[1:])
+                if 'Ответ:' in line:
+                    answer = ''.join(line.replace('\n', ' ').split(': ')[1:])
+                if question and answer:
+                    question_dict[question] = answer
+                    question = answer = ''
     return question_dict
 
 
