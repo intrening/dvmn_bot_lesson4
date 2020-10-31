@@ -7,6 +7,10 @@ from questions import (
     generate_new_question, check_answer, get_right_answer,
     load_questions,
 )
+from telegram_logger import TelegramLogsHandler
+import logging
+
+logger = logging.getLogger("dvmn_bot_telegram")
 
 
 def get_reply_keyboard():
@@ -44,6 +48,13 @@ def send_refuse_question(event, vk_api):
     )
 
 
+def send_my_account(event, vk_api):
+    send_text(
+        event, vk_api,
+        text='Ваш счет будет здесь',
+    )
+
+
 def send_solution_attempt(event, vk_api):
     is_right_answer = check_answer(
         user_id=event.user_id,
@@ -62,16 +73,31 @@ def send_solution_attempt(event, vk_api):
 
 
 def main():
+    vk_token = os.environ['VK_TOKEN']
+    debug_bot_token = os.environ['DEBUG_BOT_TOKEN']
+    debug_chat_id = os.environ['DEBUG_CHAT_ID']
+
+    logger.setLevel(logging.INFO)
+    logger.addHandler(TelegramLogsHandler(
+        debug_bot_token=debug_bot_token,
+        chat_id=debug_chat_id,
+    ))
+
     load_questions()
-    vk_session = VkApi(token=os.getenv('VK_TOKEN'))
+    vk_session = VkApi(token=vk_token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
+
+    logger.info('Бот Викторина в VK запущен')
+
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             if event.text == 'Новый вопрос':
                 send_new_question_request(event, vk_api)
             elif event.text == 'Сдаться':
                 send_refuse_question(event, vk_api)
+            elif event.text == 'Счет':
+                send_my_account(event, vk_api)
             else:
                 send_solution_attempt(event, vk_api)
 
