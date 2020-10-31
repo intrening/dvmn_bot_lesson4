@@ -5,18 +5,15 @@ from telegram.ext import (
     ConversationHandler,
 )
 from questions import (
-    generate_new_question, check_answer, get_right_answer,
-    load_questions,
+    generate_new_question, check_answer,
+    get_right_answer, load_questions,
 )
-
+from telegram_logger import TelegramLogsHandler
 import logging
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("dvmn_bot_telegram")
 
 CHOOSING, TRYING_ANSWER = range(2)
-
 reply_keyboard = [
     ['Новый вопрос', 'Сдаться'],
     ['Мой счет'],
@@ -42,6 +39,14 @@ def handle_refuse_question(bot, update, user_data):
     right_answer = get_right_answer(user_id=update.effective_chat.id)
     update.message.reply_text(
         f'Правильный ответ:\n{right_answer}',
+        reply_markup=markup,
+    )
+    return CHOOSING
+
+
+def handle_request_my_account(bot, update, user_data):
+    update.message.reply_text(
+        'Здесь будет ваш счет, пока он равен 0',
         reply_markup=markup,
     )
     return CHOOSING
@@ -75,8 +80,20 @@ def error(bot, update, error):
 
 
 def main():
+    quiz_bot_token = os.environ['TELEGRAM_TOKEN']
+    debug_bot_token = os.environ['DEBUG_BOT_TOKEN']
+    debug_chat_id = os.environ['DEBUG_CHAT_ID']
+
+    logger.setLevel(logging.INFO)
+    logger.addHandler(TelegramLogsHandler(
+        debug_bot_token=debug_bot_token,
+        chat_id=debug_chat_id,
+    ))
+
     load_questions()
-    updater = Updater(os.environ['TELEGRAM_TOKEN'])
+    updater = Updater(quiz_bot_token)
+    logger.info('Бот Викторина в Telegram запущен')
+
     dp = updater.dispatcher
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
@@ -85,6 +102,11 @@ def main():
                 RegexHandler(
                     '^Новый вопрос$',
                     handle_new_question_request,
+                    pass_user_data=True
+                ),
+                RegexHandler(
+                    '^Мой счет$',
+                    handle_request_my_account,
                     pass_user_data=True
                 ),
             ],
@@ -97,6 +119,11 @@ def main():
                 RegexHandler(
                     '^Сдаться$',
                     handle_refuse_question,
+                    pass_user_data=True
+                ),
+                RegexHandler(
+                    '^Мой счет$',
+                    handle_request_my_account,
                     pass_user_data=True
                 ),
                 MessageHandler(
