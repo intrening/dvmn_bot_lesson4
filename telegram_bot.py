@@ -30,13 +30,13 @@ def start(bot, update):
 
 
 def handle_new_question_request(bot, update, user_data):
-    question = generate_new_question(user_id=update.effective_chat.id)
+    question = generate_new_question(user_id=f'tg_{update.effective_chat.id}')
     update.message.reply_text(question, reply_markup=markup)
     return TRYING_ANSWER
 
 
 def handle_refuse_question(bot, update, user_data):
-    right_answer = get_right_answer(user_id=update.effective_chat.id)
+    right_answer = get_right_answer(user_id=f'tg_{update.effective_chat.id}')
     update.message.reply_text(
         f'Правильный ответ:\n{right_answer}',
         reply_markup=markup,
@@ -54,7 +54,7 @@ def handle_request_my_account(bot, update, user_data):
 
 def handle_solution_attempt(bot, update, user_data):
     is_right_answer = check_answer(
-        user_id=update.effective_chat.id,
+        user_id=f'tg_{update.effective_chat.id}',
         answer=update.message.text,
     )
     if is_right_answer:

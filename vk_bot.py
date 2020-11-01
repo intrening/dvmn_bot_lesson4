@@ -33,7 +33,7 @@ def send_text(event, vk_api, text):
 
 
 def send_new_question_request(event, vk_api):
-    question = generate_new_question(user_id=event.user_id)
+    question = generate_new_question(user_id=f'vk_{event.user_id}')
     send_text(
         event, vk_api,
         text=question,
@@ -41,7 +41,7 @@ def send_new_question_request(event, vk_api):
 
 
 def send_refuse_question(event, vk_api):
-    right_answer = get_right_answer(user_id=event.user_id)
+    right_answer = get_right_answer(user_id=f'vk_{event.user_id}')
     send_text(
         event, vk_api,
         text=f'Правильный ответ:\n{right_answer}',
@@ -57,7 +57,7 @@ def send_my_account(event, vk_api):
 
 def send_solution_attempt(event, vk_api):
     is_right_answer = check_answer(
-        user_id=event.user_id,
+        user_id=f'vk_{event.user_id}',
         answer=event.text,
     )
     if is_right_answer:

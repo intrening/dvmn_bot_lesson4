@@ -3,7 +3,6 @@ import random
 import json
 import redis
 
-QUESTIONS_DICT = {}
 QUESTIONS_COUNT = 0
 REDIS_DB = None
 
@@ -25,7 +24,6 @@ def check_answer(user_id, answer):
     question_item = json.loads(REDIS_DB.get(question_num))
     right_answer = question_item['answer']
     short_right_answer = right_answer.split('.')[0].split('(')[0].lower().strip()
-    print(short_right_answer)
     return answer == short_right_answer
 
 
@@ -56,7 +54,6 @@ def parse_questions():
 
 
 def load_questions():
-    global QUESTIONS_DICT
     global REDIS_DB
     global QUESTIONS_COUNT
 
@@ -65,8 +62,6 @@ def load_questions():
         port=os.getenv('REDIS_PORT'),
         password=os.getenv('REDIS_PASSWORD'),
     )
-
-    QUESTIONS_DICT = parse_questions()
 
     questions = parse_questions()
     QUESTIONS_COUNT = len(questions)
