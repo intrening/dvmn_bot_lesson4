@@ -1,28 +1,39 @@
 import os
 import random
+import json
 import redis
 
 QUESTIONS_DICT = {}
+QUESTIONS_COUNT = 0
 REDIS_DB = None
 
 
 def generate_new_question(user_id):
-    question, _ = random.choice(list(QUESTIONS_DICT.items()))
-    REDIS_DB.set(user_id, question)
-    return question
+    question_num = f'question_{random.randint(0, QUESTIONS_COUNT)}'
+    user_info = {
+        'last_asked_question': question_num,
+    }
+    REDIS_DB.set(f'user_{user_id}', json.dumps(user_info))
+    question_item = json.loads(REDIS_DB.get(question_num))
+    return question_item['question']
 
 
 def check_answer(user_id, answer):
     answer = answer.lower().strip()
-    question = REDIS_DB.get(user_id).decode()
-    right_answer = QUESTIONS_DICT[question]
+    user_info = json.loads(REDIS_DB.get(f'user_{user_id}'))
+    question_num = user_info['last_asked_question']
+    question_item = json.loads(REDIS_DB.get(question_num))
+    right_answer = question_item['answer']
     short_right_answer = right_answer.split('.')[0].split('(')[0].lower().strip()
+    print(short_right_answer)
     return answer == short_right_answer
 
 
 def get_right_answer(user_id):
-    question = REDIS_DB.get(user_id).decode()
-    return QUESTIONS_DICT[question]
+    user_info = json.loads(REDIS_DB.get(f'user_{user_id}'))
+    question_num = user_info['last_asked_question']
+    question_item = json.loads(REDIS_DB.get(question_num))
+    return question_item['answer']
 
 
 def parse_questions():
@@ -47,9 +58,23 @@ def parse_questions():
 def load_questions():
     global QUESTIONS_DICT
     global REDIS_DB
-    QUESTIONS_DICT = parse_questions()
+    global QUESTIONS_COUNT
+
     REDIS_DB = redis.Redis(
         host=os.getenv('REDIS_HOST'),
         port=os.getenv('REDIS_PORT'),
         password=os.getenv('REDIS_PASSWORD'),
     )
+
+    QUESTIONS_DICT = parse_questions()
+
+    questions = parse_questions()
+    QUESTIONS_COUNT = len(questions)
+    for num, (question, answer) in enumerate(questions.items()):
+        question_item = (
+            {
+                'question': question,
+                'answer': answer,
+            }
+        )
+        REDIS_DB.set(f'question_{num}', json.dumps(question_item))
