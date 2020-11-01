@@ -6,7 +6,7 @@ from telegram.ext import (
 )
 from questions import (
     generate_new_question, check_answer,
-    get_right_answer, load_questions,
+    get_right_answer, load_questions, check_account,
 )
 from telegram_logger import TelegramLogsHandler
 import logging
@@ -45,8 +45,13 @@ def handle_refuse_question(bot, update, user_data):
 
 
 def handle_request_my_account(bot, update, user_data):
+    success_attempts, unsuccess_attempts = check_account(
+        user_id=f'tg_{update.effective_chat.id}'
+    )
     update.message.reply_text(
-        'Здесь будет ваш счет, пока он равен 0',
+        f'''
+        Успешных попыток угадывания: {success_attempts}\nНедачных попыток угадывания: {unsuccess_attempts}
+        ''',
         reply_markup=markup,
     )
     return CHOOSING

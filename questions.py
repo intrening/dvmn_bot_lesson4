@@ -7,28 +7,54 @@ QUESTIONS_COUNT = 0
 REDIS_DB = None
 
 
+def get_redis_user_info(user_id):
+    json_user_info = REDIS_DB.get(f'user_{user_id}')
+    if json_user_info:
+        user_info = json.loads(json_user_info)
+    else:
+        user_info = {
+            'last_asked_question': '',
+            'success_attempts': 0,
+            'unsuccess_attempts': 0,
+        }
+    return user_info
+
+
+def update_redis_user_info(user_id, user_info):
+    REDIS_DB.set(f'user_{user_id}', json.dumps(user_info))
+
+
+def check_account(user_id):
+    user_info = get_redis_user_info(user_id)
+    return user_info['success_attempts'], user_info['unsuccess_attempts']
+
+
 def generate_new_question(user_id):
     question_num = f'question_{random.randint(0, QUESTIONS_COUNT)}'
-    user_info = {
-        'last_asked_question': question_num,
-    }
-    REDIS_DB.set(f'user_{user_id}', json.dumps(user_info))
+    user_info = get_redis_user_info(user_id)
+    user_info['last_asked_question'] = question_num
+    update_redis_user_info(user_id, user_info)
     question_item = json.loads(REDIS_DB.get(question_num))
     return question_item['question']
 
 
 def check_answer(user_id, answer):
     answer = answer.lower().strip()
-    user_info = json.loads(REDIS_DB.get(f'user_{user_id}'))
+    user_info = get_redis_user_info(user_id)
     question_num = user_info['last_asked_question']
     question_item = json.loads(REDIS_DB.get(question_num))
     right_answer = question_item['answer']
     short_right_answer = right_answer.split('.')[0].split('(')[0].lower().strip()
+    if answer == short_right_answer:
+        user_info['success_attempts'] += 1
+    else:
+        user_info['unsuccess_attempts'] += 1
+    update_redis_user_info(user_id, user_info)
     return answer == short_right_answer
 
 
 def get_right_answer(user_id):
-    user_info = json.loads(REDIS_DB.get(f'user_{user_id}'))
+    user_info = get_redis_user_info(user_id)
     question_num = user_info['last_asked_question']
     question_item = json.loads(REDIS_DB.get(question_num))
     return question_item['answer']

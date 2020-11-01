@@ -5,7 +5,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from questions import (
     generate_new_question, check_answer, get_right_answer,
-    load_questions,
+    load_questions, check_account,
 )
 from telegram_logger import TelegramLogsHandler
 import logging
@@ -49,9 +49,14 @@ def send_refuse_question(event, vk_api):
 
 
 def send_my_account(event, vk_api):
+    success_attempts, unsuccess_attempts = check_account(
+        user_id=f'vk_{event.user_id}'
+    )
     send_text(
         event, vk_api,
-        text='Ваш счет будет здесь',
+        text=f'''
+        Успешных попыток угадывания: {success_attempts}\nНедачных попыток угадывания: {unsuccess_attempts}
+        ''',
     )
 
 
