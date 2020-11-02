@@ -86,8 +86,8 @@ def error(bot, update, error):
 
 def main():
     quiz_bot_token = os.environ['TELEGRAM_TOKEN']
-    debug_bot_token = os.environ['DEBUG_BOT_TOKEN']
-    debug_chat_id = os.environ['DEBUG_CHAT_ID']
+    debug_bot_token = os.environ['DEBUG_TELEGRAM_BOT_TOKEN']
+    debug_chat_id = os.environ['DEBUG_TELEGRAM_CHAT_ID']
 
     logger.setLevel(logging.INFO)
     logger.addHandler(TelegramLogsHandler(

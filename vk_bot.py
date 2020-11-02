@@ -80,7 +80,7 @@ def send_solution_attempt(event, vk_api):
 def main():
     vk_token = os.environ['VK_TOKEN']
     debug_bot_token = os.environ['DEBUG_BOT_TOKEN']
-    debug_chat_id = os.environ['DEBUG_CHAT_ID']
+    debug_chat_id = os.environ['DEBUG_TELEGRAM_BOT_TOKEN']
 
     logger.setLevel(logging.INFO)
     logger.addHandler(TelegramLogsHandler(
