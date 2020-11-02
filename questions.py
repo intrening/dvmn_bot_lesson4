@@ -4,8 +4,37 @@ import json
 import redis
 
 
+REDIS_DB = None
+QUESTIONS_COUNT = 0
+
+
+def get_redis_connection():
+    global REDIS_DB
+    global QUESTIONS_COUNT
+
+    if REDIS_DB:
+        return REDIS_DB
+    REDIS_DB = redis.Redis(
+        host=os.getenv('REDIS_HOST'),
+        port=os.getenv('REDIS_PORT'),
+        password=os.getenv('REDIS_PASSWORD'),
+    )
+
+    questions = parse_questions()
+    QUESTIONS_COUNT = len(questions)
+    for num, (question, answer) in enumerate(questions.items()):
+        question_item = (
+            {
+                'question': question,
+                'answer': answer,
+            }
+        )
+        REDIS_DB.set(f'question_{num}', json.dumps(question_item))
+    return REDIS_DB
+
+
 def get_redis_user_info(user_id):
-    json_user_info = REDIS_DB.get(f'user_{user_id}')
+    json_user_info = get_redis_connection().get(f'user_{user_id}')
     if json_user_info:
         user_info = json.loads(json_user_info)
     else:
@@ -18,7 +47,7 @@ def get_redis_user_info(user_id):
 
 
 def update_redis_user_info(user_id, user_info):
-    REDIS_DB.set(f'user_{user_id}', json.dumps(user_info))
+    get_redis_connection().set(f'user_{user_id}', json.dumps(user_info))
 
 
 def get_attempts_count(user_id):
@@ -31,7 +60,7 @@ def generate_new_question(user_id):
     user_info = get_redis_user_info(user_id)
     user_info['last_asked_question'] = question_num
     update_redis_user_info(user_id, user_info)
-    question_item = json.loads(REDIS_DB.get(question_num))
+    question_item = json.loads(get_redis_connection().get(question_num))
     return question_item['question']
 
 
@@ -39,7 +68,7 @@ def check_answer(user_id, answer):
     answer = answer.lower().strip()
     user_info = get_redis_user_info(user_id)
     question_num = user_info['last_asked_question']
-    question_item = json.loads(REDIS_DB.get(question_num))
+    question_item = json.loads(get_redis_connection().get(question_num))
     right_answer = question_item['answer']
     short_right_answer = right_answer.split('.')[0].split('(')[0].lower().strip()
     if answer == short_right_answer:
@@ -53,7 +82,7 @@ def check_answer(user_id, answer):
 def get_right_answer(user_id):
     user_info = get_redis_user_info(user_id)
     question_num = user_info['last_asked_question']
-    question_item = json.loads(REDIS_DB.get(question_num))
+    question_item = json.loads(get_redis_connection().get(question_num))
     return question_item['answer']
 
 
@@ -74,21 +103,3 @@ def parse_questions():
                     question_dict[question] = answer
                     question = answer = ''
     return question_dict
-
-
-REDIS_DB = redis.Redis(
-    host=os.getenv('REDIS_HOST'),
-    port=os.getenv('REDIS_PORT'),
-    password=os.getenv('REDIS_PASSWORD'),
-)
-
-questions = parse_questions()
-QUESTIONS_COUNT = len(questions)
-for num, (question, answer) in enumerate(questions.items()):
-    question_item = (
-        {
-            'question': question,
-            'answer': answer,
-        }
-    )
-    REDIS_DB.set(f'question_{num}', json.dumps(question_item))
