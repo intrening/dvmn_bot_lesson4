@@ -6,7 +6,7 @@ from telegram.ext import (
 )
 from questions import (
     generate_new_question, check_answer,
-    get_right_answer, load_questions, check_account,
+    get_right_answer, load_questions, get_attempts_count,
 )
 from telegram_logger import TelegramLogsHandler
 import logging
@@ -45,7 +45,7 @@ def handle_refuse_question(bot, update, user_data):
 
 
 def handle_request_my_account(bot, update, user_data):
-    success_attempts, unsuccess_attempts = check_account(
+    success_attempts, unsuccess_attempts = get_attempts_count(
         user_id=f'tg_{update.effective_chat.id}'
     )
     update.message.reply_text(

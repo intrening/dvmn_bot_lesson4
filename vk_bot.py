@@ -5,7 +5,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from questions import (
     generate_new_question, check_answer, get_right_answer,
-    load_questions, check_account,
+    load_questions, get_attempts_count,
 )
 from telegram_logger import TelegramLogsHandler
 import logging
@@ -49,7 +49,7 @@ def send_refuse_question(event, vk_api):
 
 
 def send_my_account(event, vk_api):
-    success_attempts, unsuccess_attempts = check_account(
+    success_attempts, unsuccess_attempts = get_attempts_count(
         user_id=f'vk_{event.user_id}'
     )
     send_text(

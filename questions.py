@@ -24,7 +24,7 @@ def update_redis_user_info(user_id, user_info):
     REDIS_DB.set(f'user_{user_id}', json.dumps(user_info))
 
 
-def check_account(user_id):
+def get_attempts_count(user_id):
     user_info = get_redis_user_info(user_id)
     return user_info['success_attempts'], user_info['unsuccess_attempts']
 
