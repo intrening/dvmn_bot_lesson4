@@ -6,7 +6,7 @@ from telegram.ext import (
 )
 from questions import (
     generate_new_question, check_answer,
-    get_right_answer, load_questions, get_attempts_count,
+    get_right_answer, get_attempts_count,
 )
 from telegram_logger import TelegramLogsHandler
 import logging
@@ -95,7 +95,6 @@ def main():
         chat_id=debug_chat_id,
     ))
 
-    load_questions()
     updater = Updater(quiz_bot_token)
     logger.info('Бот Викторина в Telegram запущен')
 

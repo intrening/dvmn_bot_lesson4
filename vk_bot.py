@@ -4,8 +4,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from questions import (
-    generate_new_question, check_answer, get_right_answer,
-    load_questions, get_attempts_count,
+    generate_new_question, check_answer, get_right_answer, get_attempts_count,
 )
 from telegram_logger import TelegramLogsHandler
 import logging
@@ -88,7 +87,6 @@ def main():
         chat_id=debug_chat_id,
     ))
 
-    load_questions()
     vk_session = VkApi(token=vk_token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)

@@ -3,9 +3,6 @@ import random
 import json
 import redis
 
-QUESTIONS_COUNT = 0
-REDIS_DB = None
-
 
 def get_redis_user_info(user_id):
     json_user_info = REDIS_DB.get(f'user_{user_id}')
@@ -79,23 +76,19 @@ def parse_questions():
     return question_dict
 
 
-def load_questions():
-    global REDIS_DB
-    global QUESTIONS_COUNT
+REDIS_DB = redis.Redis(
+    host=os.getenv('REDIS_HOST'),
+    port=os.getenv('REDIS_PORT'),
+    password=os.getenv('REDIS_PASSWORD'),
+)
 
-    REDIS_DB = redis.Redis(
-        host=os.getenv('REDIS_HOST'),
-        port=os.getenv('REDIS_PORT'),
-        password=os.getenv('REDIS_PASSWORD'),
+questions = parse_questions()
+QUESTIONS_COUNT = len(questions)
+for num, (question, answer) in enumerate(questions.items()):
+    question_item = (
+        {
+            'question': question,
+            'answer': answer,
+        }
     )
-
-    questions = parse_questions()
-    QUESTIONS_COUNT = len(questions)
-    for num, (question, answer) in enumerate(questions.items()):
-        question_item = (
-            {
-                'question': question,
-                'answer': answer,
-            }
-        )
-        REDIS_DB.set(f'question_{num}', json.dumps(question_item))
+    REDIS_DB.set(f'question_{num}', json.dumps(question_item))
