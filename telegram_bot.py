@@ -14,24 +14,24 @@ import logging
 logger = logging.getLogger("dvmn_bot_telegram")
 
 CHOOSING, TRYING_ANSWER = range(2)
-reply_keyboard = [
+REPLY_KEYBOARD = [
     ['Новый вопрос', 'Сдаться'],
     ['Мой счет'],
 ]
-markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+MARKUP = ReplyKeyboardMarkup(REPLY_KEYBOARD, one_time_keyboard=True)
 
 
 def start(bot, update):
     update.message.reply_text(
         'Добро пожаловать в викторину!',
-        reply_markup=markup,
+        reply_markup=MARKUP,
     )
     return CHOOSING
 
 
 def handle_new_question_request(bot, update, user_data):
     question = generate_new_question(user_id=f'tg_{update.effective_chat.id}')
-    update.message.reply_text(question, reply_markup=markup)
+    update.message.reply_text(question, reply_markup=MARKUP)
     return TRYING_ANSWER
 
 
@@ -39,7 +39,7 @@ def handle_refuse_question(bot, update, user_data):
     right_answer = get_right_answer(user_id=f'tg_{update.effective_chat.id}')
     update.message.reply_text(
         f'Правильный ответ:\n{right_answer}',
-        reply_markup=markup,
+        reply_markup=MARKUP,
     )
     return CHOOSING
 
@@ -52,7 +52,7 @@ def handle_request_my_account(bot, update, user_data):
         f'''
         Успешных попыток угадывания: {success_attempts}\nНедачных попыток угадывания: {unsuccess_attempts}
         ''',
-        reply_markup=markup,
+        reply_markup=MARKUP,
     )
     return CHOOSING
 
@@ -65,12 +65,12 @@ def handle_solution_attempt(bot, update, user_data):
     if is_right_answer:
         update.message.reply_text(
             'Правильно! Поздравляю! Для следующего вопроса нажмите «Новый вопрос»',
-            reply_markup=markup,
+            reply_markup=MARKUP,
         )
         return CHOOSING
     update.message.reply_text(
         'Неправильно... Попробуете ещё раз?',
-        reply_markup=markup,
+        reply_markup=MARKUP,
     )
     return TRYING_ANSWER
 
